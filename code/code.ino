@@ -14,7 +14,7 @@ const uint16_t NUM_LEDS_BETWEEN_TIPS = 5; // The number of leds between tips (wi
 // 60000 milliseconds = 1 minute
 const uint16_t animationTime = 60000; // The time after which to change animation
 
-const uint8_t maxMode = 6; // The mode count
+const uint8_t maxMode = 8; // The mode count
 
 /**
  * Internal variables
@@ -41,7 +41,7 @@ void setup()
         Serial.begin(115200); // Enable serial output when debugging
     }
     FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);
-    FastLED.setMaxPowerInVoltsAndMilliamps(5, 200); // Limit power to 2 Watts (5V * 0.2A)
+    FastLED.setMaxPowerInVoltsAndMilliamps(5, 400); // Limit power to 2 Watts (5V * 0.4A)
     leds.fill_solid(0x000000); // Clear all leds
     FastLED.show();
 }
@@ -53,6 +53,7 @@ void loop()
     {
         lastAnimationTime = currentMillis;
         ++currentMode;
+        hue += 30;
         if (currentMode > maxMode) // Reset to first mode after last mode
         {
             currentMode = 0;
@@ -64,24 +65,30 @@ void loop()
     switch (currentMode) // Run the animation associated with the mode
     {
     case 0:
-        rainbow(currentMillis);
+        circleRainbowAnimation(currentMillis);
         break;
     case 1:
-        randomTwinkle(currentMillis, 0x00B315, 0xB3000C);
+        rainbow(currentMillis);
         break;
     case 2:
-        outsideRainbow(currentMillis);
+        randomTwinkle(currentMillis, 0x00B315, 0xB3000C);
         break;
     case 3:
-        staticColor(CHSV(hue, 255, 255));
+        outsideRainbow(currentMillis);
         break;
     case 4:
-        outsideWoosh(currentMillis);
+        circleAnimation(currentMillis, CHSV(hue, 255, 255));
         break;
     case 5:
-        simpleColorFade(currentMillis);
+        staticColor(CHSV(hue, 255, 255));
         break;
     case 6:
+        outsideWoosh(currentMillis);
+        break;
+    case 7:
+        simpleColorFade(currentMillis);
+        break;
+    case 8:
         staticTwinkle(currentMillis, CHSV(hue, 255, 255));
         break;
     default:
@@ -146,12 +153,12 @@ void outsideWoosh(uint32_t time)
     if (animate(time, 100)) // Every 100 ms update the color
     {
 #if defined(NO_TIP_AND_PIT_LEDS)
-        leds.fadeToBlackBy(convertPercent(300 / (NUM_LEDS_BETWEEN_TIPS)));
+        leds.fadeToBlackBy(convertPercent(300.0 / (NUM_LEDS_BETWEEN_TIPS)));
 
         if (animationStep < NUM_LEDS_BETWEEN_TIPS) // Don't animate all the time to have time to fade to black
         {
             leds[animationStep] = CHSV(hue, 255, 255);
-            leds(NUM_LEDS_IN_FIN, NUM_LEDS_BETWEEN_TIPS) = leds(0, NUM_LEDS_BETWEEN_TIPS);
+            mirrorFirstFin();
             copyFirstFinToAllFins();
             ++hue;
         }
@@ -162,12 +169,12 @@ void outsideWoosh(uint32_t time)
             animationStep = 0;
         }
 #else
-        leds.fadeToBlackBy(convertPercent(300 / (NUM_LEDS_BETWEEN_TIPS + 2)));
+        leds.fadeToBlackBy(convertPercent(300.0 / (NUM_LEDS_BETWEEN_TIPS + 2)));
 
         if (animationStep < NUM_LEDS_BETWEEN_TIPS + 2) // Don't animate all the time to have time to fade to black
         {
             leds[animationStep] = CHSV(hue, 255, 255);
-            leds(NUM_LEDS_IN_FIN, NUM_LEDS_BETWEEN_TIPS + 2) = leds(1, NUM_LEDS_BETWEEN_TIPS + 1);
+            mirrorFirstFin();
             copyFirstFinToAllFins();
             ++hue;
         }
@@ -232,6 +239,64 @@ void staticTwinkle(uint32_t time, const CHSV& color)
     }
 }
 
+uint8_t finIndex = 0;
+uint8_t animationStep = 0;
+
+void circleAnimation(uint32_t time, const CHSV& color)
+{
+    if (animate(time, 100)) // Every 100 ms update the color
+    {
+#if defined(NO_TIP_AND_PIT_LEDS)
+        // TODO implement
+#else
+        const uint16_t ledInFinIndex = animationStep % ((2 * NUM_LEDS_BETWEEN_TIPS) + 3);
+        // 5 fins -> 0 -> 2 -> 4 -> 1 -> 3 -> 0 -> 2 -> 4 -> 1 -> 3 -> 0
+        if (ledInFinIndex == 0)
+        {
+            finIndex = (finIndex + NUM_FINS / 2) % NUM_FINS;
+        }
+        const uint16_t ledIndex = (ledInFinIndex + finIndex * ((2 * NUM_LEDS_BETWEEN_TIPS) + 2)) % NUM_LEDS;
+
+        leds.fadeToBlackBy(convertPercent(200.0 / (NUM_LEDS_BETWEEN_TIPS + 2)));
+        leds[ledIndex] = color;
+
+        ++animationStep;
+        if (animationStep >= ((2 * NUM_LEDS_BETWEEN_TIPS) + 3) * NUM_FINS)
+        {
+            animationStep = 0;
+        }
+#endif
+    }
+}
+
+void circleRainbowAnimation(uint32_t time)
+{
+    if (animate(time, 100)) // Every 100 ms update the color
+    {
+#if defined(NO_TIP_AND_PIT_LEDS)
+        // TODO implement
+#else
+        const uint16_t ledInFinIndex = animationStep % ((2 * NUM_LEDS_BETWEEN_TIPS) + 3);
+        // 5 fins -> 0 -> 2 -> 4 -> 1 -> 3 -> 0 -> 2 -> 4 -> 1 -> 3 -> 0
+        if (ledInFinIndex == 0)
+        {
+            finIndex = (finIndex + NUM_FINS / 2) % NUM_FINS;
+        }
+        const uint16_t ledIndex = (ledInFinIndex + finIndex * ((2 * NUM_LEDS_BETWEEN_TIPS) + 2)) % NUM_LEDS;
+
+        leds.fadeToBlackBy(convertPercent(200.0 / (NUM_LEDS_BETWEEN_TIPS + 2)));
+        leds[ledIndex] = CHSV(hue, 255, 255);
+        ++hue;
+
+        ++animationStep;
+        if (animationStep >= ((2 * NUM_LEDS_BETWEEN_TIPS) + 3) * NUM_FINS)
+        {
+            animationStep = 0;
+        }
+#endif
+    }
+}
+
 // Converts a given percentage to the FastLED percentage
 uint8_t convertPercent(const double percentage)
 {
@@ -285,8 +350,8 @@ bool animate2(const uint32_t currentTime, const uint16_t animationStepTime)
     return false;
 }
 
-// Do a linear interpolation between the current color of eacg led in ledArray and the given color with the given
-// fraction
+// Do a linear interpolation between the current color of eacg led in ledArray and the given color with the
+// given fraction
 void lerp8(CPixelView<CRGB>& ledArray, const CHSV& color, const uint8_t fraction)
 {
     CRGB rgbColor = CRGB(color);
