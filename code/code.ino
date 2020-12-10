@@ -34,6 +34,27 @@ uint8_t hue = 0; // The color of the animation
 
 CRGBArray<NUM_LEDS> leds; // Our leds
 
+// forward declaration of function
+bool animate(const uint32_t currentTime, const uint16_t animationStepTime);
+bool animate2(const uint32_t currentTime, const uint16_t animationStepTime);
+void lerp8(CPixelView<CRGB>& ledArray, const CHSV& color, const uint8_t fraction);
+void lerp8(CRGB& color1, const CRGB& color2, const uint8_t fraction);
+uint8_t convertPercent(const double percentage);
+template <typename T>
+void logParameter(String name, T value);
+void mirrorFirstFin();
+void copyFirstFinToAllFins();
+
+void circleRainbowAnimation(uint32_t time);
+void rainbow(uint32_t time);
+void randomTwinkle(uint32_t time, uint32_t color1, uint32_t color2);
+void outsideRainbow(uint32_t time);
+void circleAnimation(uint32_t time, const CHSV& color);
+void staticColor(const CHSV& color);
+void staticTwinkle(uint32_t time, const CHSV& color);
+void outsideWoosh(uint32_t time);
+void simpleColorFade(uint32_t time);
+
 void setup()
 {
     if (DEBUG)
