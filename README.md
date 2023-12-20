@@ -1,6 +1,9 @@
 # Digital-christmas-star
 
-Code for this [video](https://www.youtube.com/watch?v=jLeo_D0pDiA)
+## Videos
+[![Video 1](https://img.youtube.com/vi/jLeo_D0pDiA/0.jpg)](https://www.youtube.com/watch?v=jLeo_D0pDiA)
+[![Video 2](https://img.youtube.com/vi/EICvJTpRVDk/0.jpg)](https://www.youtube.com/watch?v=EICvJTpRVDk)
+Special thanks to [PCBWay](https://www.pcbway.com/) for sponsoring the video!
 
 ## Parameters that need to be changed before upload
 * DATA_PIN -> The IO pin to which the LED's are connnected
