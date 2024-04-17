@@ -4,11 +4,11 @@
 /**
  *Config
  **/
-const bool DEBUG = false; /// en-/disable debug output
+const bool DEBUG = true; /// en-/disable debug output
 
-const uint8_t DATA_PIN = 6; /// The pin the leds are connected to
+const uint8_t DATA_PIN = 0; /// The pin the leds are connected to
 const uint16_t NUM_FINS = 5; // The number of fins the start has
-const uint16_t NUM_LEDS_BETWEEN_TIPS = 5; // The number of leds between tips (without tip leds)
+const uint16_t NUM_LEDS_BETWEEN_TIPS = 9; // The number of leds between tips (without tip leds)
 //#define NO_TIP_AND_PIT_LEDS // Uncomment this if you do not have LEDS in the tip or pit
 
 // 60000 milliseconds = 1 minute
@@ -61,8 +61,10 @@ void setup()
     {
         Serial.begin(115200); // Enable serial output when debugging
     }
-    FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);
-    FastLED.setMaxPowerInVoltsAndMilliamps(5, 400); // Limit power to 2 Watts (5V * 0.4A)
+    // FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);
+    FastLED.addLeds<WS2812B, DATA_PIN>(leds, NUM_LEDS);
+    // FastLED.setMaxPowerInVoltsAndMilliamps(5, 400); // Limit power to 2 Watts (5V * 0.4A)
+    FastLED.setBrightness(128);
     leds.fill_solid(0x000000); // Clear all leds
     FastLED.show();
 }
