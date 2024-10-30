@@ -4,33 +4,34 @@
 /**
  *Config
  **/
-const bool DEBUG = true; /// en-/disable debug output
+constexpr static const bool DEBUG = true; /// en-/disable debug output
 
-const uint8_t DATA_PIN = 0; /// The pin the leds are connected to
-const uint16_t NUM_FINS = 5; // The number of fins the start has
-const uint16_t NUM_LEDS_BETWEEN_TIPS = 9; // The number of leds between tips (without tip leds)
-//#define NO_TIP_AND_PIT_LEDS // Uncomment this if you do not have LEDS in the tip or pit
+constexpr static const uint8_t DATA_PIN = 0; /// The pin the leds are connected to
+constexpr static const uint16_t NUM_FINS = 5; /// The number of fins the start has
+constexpr static const uint16_t NUM_LEDS_BETWEEN_TIPS = 9; /// The number of leds between tips (without tip leds)
+constexpr static const uint16_t LED_OFFSET = 0; /// Offset for first LED
+//#define NO_TIP_AND_PIT_LEDS /// Uncomment this if you do not have LEDS in the tip or pit
 
 // 60000 milliseconds = 1 minute
-const uint16_t animationTime = 60000; // The time after which to change animation
+constexpr static const uint16_t animationTime = 60000; /// The time after which to change animation
 
-const uint8_t maxMode = 8; // The mode count
+constexpr static const uint8_t maxMode = 8; /// The mode count
 
 /**
  * Internal variables
  **/
 #if defined(NO_TIP_AND_PIT_LEDS)
-const uint16_t NUM_LEDS = (NUM_LEDS_BETWEEN_TIPS * NUM_FINS * 2);
-const uint16_t NUM_LEDS_IN_FIN = (2 * NUM_LEDS_BETWEEN_TIPS);
+constexpr static const uint16_t NUM_LEDS = (NUM_LEDS_BETWEEN_TIPS * NUM_FINS * 2);
+constexpr static const uint16_t NUM_LEDS_IN_FIN = (2 * NUM_LEDS_BETWEEN_TIPS);
 #else
-const uint16_t NUM_LEDS = (NUM_FINS * 2 + NUM_LEDS_BETWEEN_TIPS * NUM_FINS * 2);
-const uint16_t NUM_LEDS_IN_FIN = (2 * NUM_LEDS_BETWEEN_TIPS) + 1;
+constexpr static const uint16_t NUM_LEDS = (NUM_FINS * 2 + NUM_LEDS_BETWEEN_TIPS * NUM_FINS * 2);
+constexpr static const uint16_t NUM_LEDS_IN_FIN = (2 * NUM_LEDS_BETWEEN_TIPS) + 1;
 #endif
-uint32_t lastAnimationTime = 0; // The last time we changed the animation
-uint32_t lastAnimationStep = 0; // The last time we animated a step 1
-uint32_t lastAnimationStep2 = 0; // The last time we animated a step 2
-uint8_t currentMode = 0; // The current mode/animation we are in
-uint8_t hue = 0; // The color of the animation
+uint32_t lastAnimationTime = 0; /// The last time we changed the animation
+uint32_t lastAnimationStep = 0; /// The last time we animated a step 1
+uint32_t lastAnimationStep2 = 0; /// The last time we animated a step 2
+uint8_t currentMode = 0; /// The current mode/animation we are in
+uint8_t hue = 0; /// The color of the animation
 
 CRGBArray<NUM_LEDS> leds; // Our leds
 
@@ -39,21 +40,21 @@ bool animate(const uint32_t currentTime, const uint16_t animationStepTime);
 bool animate2(const uint32_t currentTime, const uint16_t animationStepTime);
 void lerp8(CPixelView<CRGB>& ledArray, const CHSV& color, const uint8_t fraction);
 void lerp8(CRGB& color1, const CRGB& color2, const uint8_t fraction);
-uint8_t convertPercent(const double percentage);
+constexpr uint8_t convertPercent(const double percentage);
 template <typename T>
-void logParameter(String name, T value);
+void logParameter(const String& name, const T& value);
 void mirrorFirstFin();
 void copyFirstFinToAllFins();
 
-void circleRainbowAnimation(uint32_t time);
-void rainbow(uint32_t time);
-void randomTwinkle(uint32_t time, uint32_t color1, uint32_t color2);
-void outsideRainbow(uint32_t time);
-void circleAnimation(uint32_t time, const CHSV& color);
-void staticColor(const CHSV& color);
-void staticTwinkle(uint32_t time, const CHSV& color);
-void outsideWoosh(uint32_t time);
-void simpleColorFade(uint32_t time);
+bool circleRainbowAnimation(const uint32_t time);
+bool rainbow(const uint32_t time);
+bool randomTwinkle(const uint32_t time, const uint32_t color1, const uint32_t color2);
+bool outsideRainbow(const uint32_t time);
+bool circleAnimation(const uint32_t time, const CHSV& color);
+bool staticColor(const CHSV& color);
+bool staticTwinkle(const uint32_t time, const CHSV& color);
+bool outsideWoosh(const uint32_t time);
+bool simpleColorFade(const uint32_t time);
 
 void setup()
 {
@@ -85,243 +86,261 @@ void loop()
 
     logParameter("Time", currentMillis);
 
+    bool show = false;
     switch (currentMode) // Run the animation associated with the mode
     {
     case 0:
-        circleRainbowAnimation(currentMillis);
+        show = circleRainbowAnimation(currentMillis);
         break;
     case 1:
-        rainbow(currentMillis);
+        show = rainbow(currentMillis);
         break;
     case 2:
-        randomTwinkle(currentMillis, 0x00B315, 0xB3000C);
+        show = randomTwinkle(currentMillis, 0x00B315, 0xB3000C);
         break;
     case 3:
-        outsideRainbow(currentMillis);
+        show = outsideRainbow(currentMillis);
         break;
     case 4:
-        circleAnimation(currentMillis, CHSV(hue, 255, 255));
+        show = circleAnimation(currentMillis, CHSV(hue, 255, 255));
         break;
     case 5:
-        staticColor(CHSV(hue, 255, 255));
+        show = staticColor(CHSV(hue, 255, 255));
         break;
     case 6:
-        outsideWoosh(currentMillis);
+        show = outsideWoosh(currentMillis);
         break;
     case 7:
-        simpleColorFade(currentMillis);
+        show = simpleColorFade(currentMillis);
         break;
     case 8:
-        staticTwinkle(currentMillis, CHSV(hue, 255, 255));
+        show = staticTwinkle(currentMillis, CHSV(hue, 255, 255));
         break;
     default:
         currentMode = 0;
     }
 
-    LEDS.show(); // Show the animation
-}
-
-void rainbow(uint32_t time)
-{
-    if (animate(time, 30)) // Every 30 ms update the color
+    if (show)
     {
-        ++hue;
-        for (uint8_t i = 0; i < NUM_LEDS; ++i)
-        {
-            leds[i].setHue((hue - (255 / NUM_LEDS) * i) % 256);
-        }
+        LEDS.show(); // Show the animation
     }
 }
 
-void randomTwinkle(uint32_t time, uint32_t color1, uint32_t color2)
+bool rainbow(const uint32_t time)
 {
-    if (animate(time, 100)) // Every 100 ms fade by 20 and set random leds
+    if (!animate(time, 30)) // Every 30 ms update the color
     {
-        leds.fadeToBlackBy(20);
-        leds[random8(0, NUM_LEDS)] = color1;
-        leds[random8(0, NUM_LEDS)] = color2;
+        return false;
     }
+
+    ++hue;
+    for (uint8_t i = 0; i < NUM_LEDS; ++i)
+    {
+        leds[i].setHue((hue - (255 / NUM_LEDS) * i) % 256);
+    }
+    return true;
 }
 
-void weirdAnimation(uint32_t time)
+bool randomTwinkle(const uint32_t time, const uint32_t color1, const uint32_t color2)
 {
-    if (animate(time, 30)) // Every 30 ms update the color
+    if (!animate(time, 100)) // Every 100 ms fade by 20 and set random leds
     {
-        ++hue;
+        return false;
+    }
+
+    leds.fadeToBlackBy(20);
+    leds[random8(0, NUM_LEDS)] = color1;
+    leds[random8(0, NUM_LEDS)] = color2;
+    return true;
+}
+
+bool weirdAnimation(const uint32_t time)
+{
+    if (!animate(time, 30)) // Every 30 ms update the color
+    {
+        return false;
+    }
+
+    ++hue;
 
 #if defined(NO_TIP_AND_PIT_LEDS)
-        // Fill rainbow between first tips
-        for (uint8_t i = 0; i < NUM_LEDS_BETWEEN_TIPS; ++i)
-        {
-            leds[i].setHue((hue - (255 / NUM_LEDS_BETWEEN_TIPS) * i) % 256);
-        }
-#else
-        // Set tip and inner tip green
-        leds[0] = leds[NUM_FINS + 1] = 0x00B315;
-
-        // Fill rainbow between first tips
-        for (uint8_t i = 0; i < NUM_LEDS_BETWEEN_TIPS; ++i)
-        {
-            leds[i + 1].setHue((hue - (255 / NUM_LEDS_BETWEEN_TIPS) * i) % 256);
-        }
-#endif
-        mirrorFirstFin();
-        copyFirstFinToAllFins();
+    // Fill rainbow between first tips
+    for (uint8_t i = 0; i < NUM_LEDS_BETWEEN_TIPS; ++i)
+    {
+        leds[i].setHue((hue - (255 / NUM_LEDS_BETWEEN_TIPS) * i) % 256);
     }
+#else
+    // Set tip and inner tip green
+    leds[0] = leds[NUM_FINS + 1] = 0x00B315;
+
+    // Fill rainbow between first tips
+    for (uint8_t i = 0; i < NUM_LEDS_BETWEEN_TIPS; ++i)
+    {
+        leds[i + 1].setHue((hue - (255 / NUM_LEDS_BETWEEN_TIPS) * i) % 256);
+    }
+#endif
+    mirrorFirstFin();
+    copyFirstFinToAllFins();
+    return true;
 }
 
-void outsideWoosh(uint32_t time)
+bool outsideWoosh(const uint32_t time)
 {
+#if defined(NO_TIP_AND_PIT_LEDS)
+    constexpr static const uint16_t LED_COUNT = NUM_LEDS_BETWEEN_TIPS;
+#else
+    constexpr static const uint16_t LED_COUNT = NUM_LEDS_BETWEEN_TIPS + 2;
+#endif
     static uint8_t animationStep = 0;
-    if (animate(time, 100)) // Every 100 ms update the color
+
+    if (!animate(time, 100)) // Every 100 ms update the color
     {
-#if defined(NO_TIP_AND_PIT_LEDS)
-        leds.fadeToBlackBy(convertPercent(300.0 / (NUM_LEDS_BETWEEN_TIPS)));
-
-        if (animationStep < NUM_LEDS_BETWEEN_TIPS) // Don't animate all the time to have time to fade to black
-        {
-            leds[animationStep] = CHSV(hue, 255, 255);
-            mirrorFirstFin();
-            copyFirstFinToAllFins();
-            ++hue;
-        }
-
-        ++animationStep;
-        if (animationStep >= 2 * (NUM_LEDS_BETWEEN_TIPS))
-        {
-            animationStep = 0;
-        }
-#else
-        leds.fadeToBlackBy(convertPercent(300.0 / (NUM_LEDS_BETWEEN_TIPS + 2)));
-
-        if (animationStep < NUM_LEDS_BETWEEN_TIPS + 2) // Don't animate all the time to have time to fade to black
-        {
-            leds[animationStep] = CHSV(hue, 255, 255);
-            mirrorFirstFin();
-            copyFirstFinToAllFins();
-            ++hue;
-        }
-
-        ++animationStep;
-        if (animationStep >= 2 * (NUM_LEDS_BETWEEN_TIPS + 2))
-        {
-            animationStep = 0;
-        }
-#endif
+        return false;
     }
-}
 
-void outsideRainbow(uint32_t time)
-{
-    if (animate(time, 30)) // Every 30 ms update the color
+    leds.fadeToBlackBy(convertPercent(300.0 / LED_COUNT));
+
+    if (animationStep < LED_COUNT) // Don't animate all the time to have time to fade to black
     {
-        ++hue;
-
-#if defined(NO_TIP_AND_PIT_LEDS)
-        // Fill rainbow between first tips
-        for (uint8_t i = 0; i < NUM_LEDS_BETWEEN_TIPS; ++i)
-        {
-            leds[i].setHue((hue - (255 / (NUM_LEDS_IN_FIN)) * i) % 256);
-        }
-#else
-        // Fill rainbow between first tips
-        for (uint8_t i = 0; i < NUM_LEDS_BETWEEN_TIPS + 2; ++i)
-        {
-            leds[i].setHue((hue - (255 / (NUM_LEDS_IN_FIN)) * i) % 256);
-        }
-#endif
-
+        leds[(animationStep + LED_OFFSET) % NUM_LEDS] = CHSV(hue, 255, 255);
         mirrorFirstFin();
         copyFirstFinToAllFins();
-    }
-}
-
-void simpleColorFade(uint32_t time)
-{
-    if (animate(time, 30)) // Every 30 ms update the color
-    {
         ++hue;
-        staticColor(CHSV(hue, 255, 255));
     }
+
+    ++animationStep;
+    if (animationStep >= 2 * LED_COUNT)
+    {
+        animationStep = 0;
+    }
+    return true;
 }
 
-void staticColor(const CHSV& color)
+bool outsideRainbow(const uint32_t time)
+{
+#if defined(NO_TIP_AND_PIT_LEDS)
+    constexpr static const uint16_t LED_COUNT = NUM_LEDS_BETWEEN_TIPS;
+#else
+    constexpr static const uint16_t LED_COUNT = NUM_LEDS_BETWEEN_TIPS + 2;
+#endif
+
+    if (!animate(time, 30)) // Every 30 ms update the color
+    {
+        return false;
+    }
+
+    ++hue;
+    // Fill rainbow between first tips
+    for (uint8_t i = 0; i < LED_COUNT; ++i)
+    {
+        leds[i].setHue(((hue - (255 / (NUM_LEDS_IN_FIN)) * i) + LED_OFFSET) % 256);
+    }
+
+    mirrorFirstFin();
+    copyFirstFinToAllFins();
+    return true;
+}
+
+bool simpleColorFade(const uint32_t time)
+{
+    if (!animate(time, 30)) // Every 30 ms update the color
+    {
+        return false;
+    }
+
+    ++hue;
+    staticColor(CHSV(hue, 255, 255));
+    return true;
+}
+
+bool staticColor(const CHSV& color)
 {
     leds.fill_solid(color);
+    return true;
 }
 
-void staticTwinkle(uint32_t time, const CHSV& color)
+bool staticTwinkle(const uint32_t time, const CHSV& color)
 {
+    bool update = false;
     if (animate2(time, 50)) // Every 50 ms fade to black by 12.5 %
     {
         lerp8(leds, color, convertPercent(12.5)); // 12.5%
+        update = true;
     }
     if (animate(time, 150))
     {
         leds[random8(0, NUM_LEDS)] = CRGB::White;
+        update = true;
     }
+    return update;
 }
 
 uint8_t finIndex = 0;
 uint8_t animationStep = 0;
 
-void circleAnimation(uint32_t time, const CHSV& color)
+bool circleAnimation(const uint32_t time, const CHSV& color)
 {
-    if (animate(time, 100)) // Every 100 ms update the color
+    if (!animate(time, 100)) // Every 100 ms update the color
     {
-#if defined(NO_TIP_AND_PIT_LEDS)
-        // TODO implement
-#else
-        const uint16_t ledInFinIndex = animationStep % ((2 * NUM_LEDS_BETWEEN_TIPS) + 3);
-        // 5 fins -> 0 -> 2 -> 4 -> 1 -> 3 -> 0 -> 2 -> 4 -> 1 -> 3 -> 0
-        if (ledInFinIndex == 0)
-        {
-            finIndex = (finIndex + NUM_FINS / 2) % NUM_FINS;
-        }
-        const uint16_t ledIndex = (ledInFinIndex + finIndex * ((2 * NUM_LEDS_BETWEEN_TIPS) + 2)) % NUM_LEDS;
-
-        leds.fadeToBlackBy(convertPercent(200.0 / (NUM_LEDS_BETWEEN_TIPS + 2)));
-        leds[ledIndex] = color;
-
-        ++animationStep;
-        if (animationStep >= ((2 * NUM_LEDS_BETWEEN_TIPS) + 3) * NUM_FINS)
-        {
-            animationStep = 0;
-        }
-#endif
+        return false;
     }
+
+#if defined(NO_TIP_AND_PIT_LEDS)
+    // TODO implement
+#else
+    const uint16_t ledInFinIndex = animationStep % ((2 * NUM_LEDS_BETWEEN_TIPS) + 3);
+    // 5 fins -> 0 -> 2 -> 4 -> 1 -> 3 -> 0 -> 2 -> 4 -> 1 -> 3 -> 0
+    if (ledInFinIndex == 0)
+    {
+        finIndex = (finIndex + NUM_FINS / 2) % NUM_FINS;
+    }
+    const uint16_t ledIndex = (ledInFinIndex + finIndex * ((2 * NUM_LEDS_BETWEEN_TIPS) + 2)) % NUM_LEDS;
+
+    leds.fadeToBlackBy(convertPercent(200.0 / (NUM_LEDS_BETWEEN_TIPS + 2)));
+    leds[ledIndex] = color;
+
+    ++animationStep;
+    if (animationStep >= ((2 * NUM_LEDS_BETWEEN_TIPS) + 3) * NUM_FINS)
+    {
+        animationStep = 0;
+    }
+#endif
+    return true;
 }
 
-void circleRainbowAnimation(uint32_t time)
+bool circleRainbowAnimation(const uint32_t time)
 {
-    if (animate(time, 100)) // Every 100 ms update the color
+    if (!animate(time, 100)) // Every 100 ms update the color
     {
-#if defined(NO_TIP_AND_PIT_LEDS)
-        // TODO implement
-#else
-        const uint16_t ledInFinIndex = animationStep % ((2 * NUM_LEDS_BETWEEN_TIPS) + 3);
-        // 5 fins -> 0 -> 2 -> 4 -> 1 -> 3 -> 0 -> 2 -> 4 -> 1 -> 3 -> 0
-        if (ledInFinIndex == 0)
-        {
-            finIndex = (finIndex + NUM_FINS / 2) % NUM_FINS;
-        }
-        const uint16_t ledIndex = (ledInFinIndex + finIndex * ((2 * NUM_LEDS_BETWEEN_TIPS) + 2)) % NUM_LEDS;
-
-        leds.fadeToBlackBy(convertPercent(200.0 / (NUM_LEDS_BETWEEN_TIPS + 2)));
-        leds[ledIndex] = CHSV(hue, 255, 255);
-        ++hue;
-
-        ++animationStep;
-        if (animationStep >= ((2 * NUM_LEDS_BETWEEN_TIPS) + 3) * NUM_FINS)
-        {
-            animationStep = 0;
-        }
-#endif
+        return false;
     }
+
+#if defined(NO_TIP_AND_PIT_LEDS)
+    // TODO implement
+#else
+    const uint16_t ledInFinIndex = animationStep % ((2 * NUM_LEDS_BETWEEN_TIPS) + 3);
+    // 5 fins -> 0 -> 2 -> 4 -> 1 -> 3 -> 0 -> 2 -> 4 -> 1 -> 3 -> 0
+    if (ledInFinIndex == 0)
+    {
+        finIndex = (finIndex + NUM_FINS / 2) % NUM_FINS;
+    }
+    const uint16_t ledIndex = ((ledInFinIndex + finIndex * ((2 * NUM_LEDS_BETWEEN_TIPS) + 2)) + LED_OFFSET) % NUM_LEDS;
+
+    leds.fadeToBlackBy(convertPercent(200.0 / (NUM_LEDS_BETWEEN_TIPS + 2)));
+    leds[ledIndex] = CHSV(hue, 255, 255);
+    ++hue;
+
+    ++animationStep;
+    if (animationStep >= ((2 * NUM_LEDS_BETWEEN_TIPS) + 3) * NUM_FINS)
+    {
+        animationStep = 0;
+    }
+#endif
+    return true;
 }
 
 // Converts a given percentage to the FastLED percentage
-uint8_t convertPercent(const double percentage)
+constexpr uint8_t convertPercent(const double percentage)
 {
     return percentage * 2.56;
 }
@@ -377,7 +396,7 @@ bool animate2(const uint32_t currentTime, const uint16_t animationStepTime)
 // given fraction
 void lerp8(CPixelView<CRGB>& ledArray, const CHSV& color, const uint8_t fraction)
 {
-    CRGB rgbColor = CRGB(color);
+    const CRGB rgbColor = CRGB(color);
     for (int i = 0; i < ledArray.size(); ++i)
     {
         lerp8(ledArray[i], rgbColor, fraction);
@@ -395,7 +414,7 @@ void lerp8(CRGB& color1, const CRGB& color2, const uint8_t fraction)
 // Log the given parameter when logging is enabled
 // Ecpected output: "<name>: <value>"
 template <typename T>
-void logParameter(String name, T value)
+void logParameter(const String& name, const T& value)
 {
     if (DEBUG)
     {
