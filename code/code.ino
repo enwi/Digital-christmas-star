@@ -136,7 +136,8 @@ bool rainbow(const uint32_t time)
     ++hue;
     for (uint8_t i = 0; i < NUM_LEDS; ++i)
     {
-        leds[i].setHue((hue - (255 / NUM_LEDS) * i) % 256);
+        uint16_t offset = (256 * i) / NUM_LEDS;
+        leds[i].setHue((hue - offset) % 256);
     }
     return true;
 }
